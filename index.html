@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CJ7 Trading — AI-Assisted Discipline</title>
+<meta name="description" content="CJ7's AI-assisted trading system. Removing emotion from every trade through automation." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,30..100,0..1&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink:       '#0B0B0C',
+          ink2:      '#111113',
+          ash:       '#1B1B1E',
+          bone:      '#EDE7DD',
+          dust:      '#9A9690',
+          mute:      '#5A5752',
+          mercury:   '#FF6B35',
+          phosphor:  '#7CE07C',
+          signal:    '#FF5252',
+          amber:     '#FFC857',
+        },
+        fontFamily: {
+          display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+          sans:    ['"Instrument Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  /* ───────── base ───────── */
+  html, body { background: #0B0B0C; color: #EDE7DD; }
+  body {
+    font-family: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* dot grid background */
+  .grid-bg {
+    background-image: radial-gradient(rgba(237,231,221,0.06) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -1px -1px;
+  }
+
+  /* film grain overlay */
+  .grain::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    z-index: 100;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  /* fraunces tuning */
+  .display-xl {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "SOFT" 30, "WONK" 0;
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+  }
+  .display-md {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 96, "SOFT" 30;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .display-italic {
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
+  }
+
+  /* eyebrow label */
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #9A9690;
+  }
+
+  /* live dot */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.85); }
+  }
+  .live-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+  /* ticker rail */
+  .rail-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: #5A5752;
+  }
+
+  /* hero entrance */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .rise { animation: rise 0.9s cubic-bezier(.2,.8,.2,1) both; }
+
+  /* stat counter */
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+    font-weight: 300;
+    font-size: clamp(56px, 9vw, 128px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+  }
+
+  /* journal entry */
+  .entry {
+    border-top: 1px solid rgba(237,231,221,0.08);
+    transition: background-color .25s ease;
+  }
+  .entry:hover { background: rgba(237,231,221,0.025); }
+  .entry .ts {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #9A9690;
+  }
+  .entry-win  .marker { background: #7CE07C; box-shadow: 0 0 12px rgba(124,224,124,0.4); }
+  .entry-loss .marker { background: #FF5252; box-shadow: 0 0 12px rgba(255,82,82,0.4); }
+  .entry-miss .marker { background: #FFC857; box-shadow: 0 0 12px rgba(255,200,87,0.4); }
+  .entry-neut .marker { background: #5A5752; }
+  .entry-win  .body strong { color: #7CE07C; }
+  .entry-loss .body strong { color: #FF5252; }
+  .entry-miss .body strong { color: #FFC857; }
+
+  /* tech badge */
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    border: 1px solid rgba(237,231,221,0.15);
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: #EDE7DD;
+    background: rgba(237,231,221,0.02);
+    transition: all .2s ease;
+  }
+  .badge:hover { border-color: #FF6B35; color: #FF6B35; }
+
+  /* section divider */
+  .rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(237,231,221,0.18), transparent);
+  }
+
+  /* search input */
+  .search {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(237,231,221,0.18);
+    color: #EDE7DD;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 10px 0;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s ease;
+  }
+  .search:focus { border-color: #FF6B35; }
+  .search::placeholder { color: #5A5752; }
+
+  /* underline link */
+  .ul-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 100% 1px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    padding-bottom: 2px;
+  }
+
+  /* selection */
+  ::selection { background: #FF6B35; color: #0B0B0C; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0B0B0C; }
+  ::-webkit-scrollbar-thumb { background: #1B1B1E; border-radius: 0; }
+  ::-webkit-scrollbar-thumb:hover { background: #2a2a2e; }
+</style>
+</head>
+
+<body class="min-h-screen grain">
+
+  <!-- ░░░░░ TOP BAR ░░░░░ -->
+  <header class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-ink/70 border-b border-white/5">
+    <div class="max-w-[1400px] mx-auto px-5 md:px-10 h-12 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-2 h-2 rounded-full bg-mercury live-dot"></div>
+        <span class="eyebrow">CJ7 / TERMINAL</span>
+      </div>
+      <div class="flex items-center gap-6 text-[11px] font-mono text-dust uppercase tracking-[0.18em]">
+        <span class="hidden md:inline">ICT · Bangkok</span>
+        <span id="clock">--:--:--</span>
+        <span class="text-phosphor">● Session Live</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ░░░░░ VERTICAL RAIL (desktop only) ░░░░░ -->
+  <div class="hidden lg:flex fixed left-0 top-0 bottom-0 z-40 w-10 items-center justify-center">
+    <div class="rail-text">LIVE · 21:30 ICT · BTC · XAU · USDJPY · TESTING</div>
+  </div>
+
+  <!-- ░░░░░ HERO ░░░░░ -->
+  <section class="relative pt-28 md:pt-36 pb-16 md:pb-24 grid-bg">
+    <div class="max-w-[1400px] mx-auto px-5 md:px-10 lg:pl-20">
+
+      <!-- eyebrow row -->
+      <div class="flex items-center gap-3 mb-6 rise" style="animation-delay:.05s">
+        <span class="eyebrow">01 — Manifesto</span>
+        <span class="flex-1 h-px bg-white/10"></span>
+        <span class="eyebrow">v0.1 · Paper</span>
+      </div>
+
+      <!-- status pill -->
+      <div class="mb-8 rise" style="animation-delay:.1s">
+        <span class="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-amber border border-amber/30 bg-amber/5 px-3 py-1.5 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber live-dot"></span>
+          Testing · 3 pairs · paper only
+        </span>
+      </div>
+
+      <!-- big headline -->
+      <h1 class="display-xl text-bone text-[clamp(56px,11vw,180px)] mb-8 rise" style="animation-delay:.15s">
+        AI-Assisted<br />
+        <span class="display-italic text-mercury">Discipline.</span>
+      </h1>
+
+      <!-- subtitle + story -->
+      <div class="grid md:grid-cols-12 gap-8 md:gap-12 max-w-6xl">
+        <div class="md:col-span-5 rise" style="animation-delay:.3s">
+          <p class="text-bone/85 text-xl md:text-2xl leading-snug font-display" style='font-variation-settings:"opsz" 14;'>
+            Removing emotion from every trade through automation.
+          </p>
+        </div>
+        <div class="md:col-span-7 rise" style="animation-delay:.4s">
+          <p class="text-dust text-[15px] md:text-base leading-relaxed">
+            <span class="text-bone">CJ7</span> — software engineer, AI &amp; crypto enthusiast based in Thailand.
+            This system pairs <span class="text-bone">Claude Code</span> for analysis with
+            <span class="text-bone">TradingView</span> signals routed through
+            <span class="text-bone">Telegram bots</span> and orchestrated by <span class="text-bone">launchd</span>
+            on a 9:30 PM ICT window. Currently testing the system on three pairs:
+            <span class="text-mercury">BTC</span>,
+            <span class="text-mercury">Gold</span>, and <span class="text-mercury">USD/JPY</span>.
+            The thesis is simple — humans hesitate, panic, and chase. Machines don't.
+            Phase: <span class="text-bone">2-week paper validation</span>, no live capital.
+          </p>
+        </div>
+      </div>
+
+      <!-- tech badges -->
+      <div class="mt-12 flex flex-wrap gap-2 rise" style="animation-delay:.55s">
+        <span class="badge">⌘ Claude Code</span>
+        <span class="badge">▲ TradingView</span>
+        <span class="badge">✦ Telegram</span>
+        <span class="badge">⌗ launchd</span>
+        <span class="badge">∂ Pine Script</span>
+      </div>
+
+      <!-- download CTA -->
+      <div class="mt-10 flex flex-col sm:flex-row sm:items-center gap-4 rise" style="animation-delay:.7s">
+        <a href="CJ7_Trading_Agent_Setup_Guide_v2.pdf"
+           download
+           class="group inline-flex items-center gap-3 bg-mercury text-ink px-5 py-3 font-mono text-[13px] uppercase tracking-[0.12em] hover:bg-bone transition-colors duration-200">
+          <svg class="w-4 h-4 group-hover:translate-y-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3v13m0 0l-5-5m5 5l5-5M5 21h14"/>
+          </svg>
+          Download the Setup Guide
+        </a>
+        <span class="font-mono text-xs text-mute">
+          PDF · v2 · Free · No email required
+        </span>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="rule mx-5 md:mx-10 lg:ml-20"></div>
+
+  <!-- ░░░░░ STATS ░░░░░ -->
+  <section class="py-20 md:py-28">
+    <div class="max-w-[1400px] mx-auto px-5 md:px-10 lg:pl-20">
+
+      <div class="flex items-end justify-between mb-12 md:mb-16">
+        <div>
+          <div class="eyebrow mb-3">02 — System Vitals</div>
+          <h2 class="display-md text-[clamp(34px,5vw,72px)] text-bone">By the numbers.</h2>
+        </div>
+        <div class="hidden md:block text-right">
+          <div class="eyebrow">Last sync</div>
+          <div class="font-mono text-xs text-bone mt-1" id="lastSync">—</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/8">
+
+        <div class="bg-ink p-8 md:p-10">
+          <div class="eyebrow mb-6">Days Trading</div>
+          <div class="stat-num text-bone" id="statDays">—</div>
+          <div class="mt-4 text-xs font-mono text-mute">SINCE FIRST ENTRY</div>
+        </div>
+
+        <div class="bg-ink p-8 md:p-10">
+          <div class="eyebrow mb-6">Journal Entries</div>
+          <div class="stat-num text-mercury" id="statEntries">—</div>
+          <div class="mt-4 text-xs font-mono text-mute">TOTAL LOGGED</div>
+        </div>
+
+        <div class="bg-ink p-8 md:p-10">
+          <div class="eyebrow mb-6">System Uptime</div>
+          <div class="stat-num text-bone">99<span class="text-mercury">%</span></div>
+          <div class="mt-4 text-xs font-mono text-mute">launchd · 30D ROLLING</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="rule mx-5 md:mx-10 lg:ml-20"></div>
+
+  <!-- ░░░░░ JOURNAL ░░░░░ -->
+  <section class="py-20 md:py-28">
+    <div class="max-w-[1400px] mx-auto px-5 md:px-10 lg:pl-20">
+
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 md:mb-14">
+        <div>
+          <div class="eyebrow mb-3 flex items-center gap-2">
+            <span>03 — Trade Journal</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-phosphor live-dot"></span>
+            <span class="text-phosphor">LIVE</span>
+          </div>
+          <h2 class="display-md text-[clamp(34px,5vw,72px)] text-bone">
+            Every entry. <span class="display-italic text-dust">No edits.</span>
+          </h2>
+        </div>
+
+        <div class="md:w-80">
+          <input id="search" class="search" type="text" placeholder="filter by symbol, tag, date…" />
+        </div>
+      </div>
+
+      <!-- legend -->
+      <div class="flex flex-wrap items-center gap-5 mb-8 text-xs font-mono text-dust">
+        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-phosphor"></span>WIN</span>
+        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-signal"></span>LOSS</span>
+        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber"></span>MISSED</span>
+        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-mute"></span>NOTE</span>
+        <span class="ml-auto" id="entryCount">—</span>
+      </div>
+
+      <!-- entries -->
+      <div id="entries" class="border-b border-white/8"></div>
+
+      <!-- empty state (hidden by default) -->
+      <div id="emptyState" class="hidden py-20 text-center">
+        <div class="display-md text-[clamp(28px,4vw,56px)] text-bone mb-4">
+          The book is <span class="display-italic text-mercury">empty.</span>
+        </div>
+        <p class="text-dust max-w-md mx-auto">
+          No entries yet in <span class="font-mono text-bone">journal.md</span>.
+          The first trade is always the loudest. Log it, and the silence breaks.
+        </p>
+        <div class="mt-8 inline-block text-left bg-ink2 border border-white/10 px-5 py-4 font-mono text-xs text-dust">
+          <div class="text-mute mb-2"># journal.md format</div>
+          <div>[2026-04-25 21:30] BTC long 67200, +1.2R</div>
+          <div>[2026-04-25 22:15] XAUUSD short, -0.5R stopped</div>
+          <div>[2026-04-26 21:45] MISSED: USDJPY breakout</div>
+        </div>
+      </div>
+
+      <!-- error state -->
+      <div id="errorState" class="hidden py-16 text-center">
+        <div class="eyebrow text-amber mb-3">∅ journal.md not reachable</div>
+        <p class="text-dust max-w-md mx-auto text-sm">
+          Couldn't load <span class="font-mono text-bone">journal.md</span>.
+          Make sure it lives next to <span class="font-mono text-bone">index.html</span>.
+          Showing demo entries below so you can see the layout.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ░░░░░ FOOTER ░░░░░ -->
+  <footer class="py-16 border-t border-white/5">
+    <div class="max-w-[1400px] mx-auto px-5 md:px-10 lg:pl-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+      <div>
+        <div class="display-md text-3xl text-bone">CJ7<span class="text-mercury">.</span></div>
+        <div class="eyebrow mt-2">Wittaya Choolim · @youngkoi101</div>
+      </div>
+      <div class="font-mono text-xs text-mute leading-relaxed md:text-right">
+        <div>Thailand · UTC+7</div>
+        <div>Built with Claude Code · Phase 1</div>
+        <div class="mt-2">
+          <a href="CJ7_Trading_Agent_Setup_Guide_v2.pdf" download class="text-bone hover:text-mercury ul-link transition-colors">
+            ↓ Setup Guide PDF
+          </a>
+        </div>
+        <div class="mt-2 text-mercury">Not financial advice.</div>
+      </div>
+    </div>
+  </footer>
+
+
+<!-- ═══════════════════════════════════════════════════════ JS ═══════════════════════════════════════════════════════ -->
+<script>
+(() => {
+  'use strict';
+
+  // ───────── live clock (Bangkok) ─────────
+  const clockEl = document.getElementById('clock');
+  function tickClock() {
+    const fmt = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Bangkok',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    });
+    clockEl.textContent = fmt.format(new Date());
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  // last sync
+  const lastSync = document.getElementById('lastSync');
+  if (lastSync) {
+    lastSync.textContent = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Bangkok', dateStyle: 'short', timeStyle: 'short', hour12: false,
+    }).format(new Date()) + ' ICT';
+  }
+
+  // ───────── parse journal.md ─────────
+  // entry shape: [YYYY-MM-DD HH:MM] body...
+  // wins:   contains "+" or "WIN"
+  // losses: contains "-" R/loss or "LOSS" or "STOPPED"
+  // missed: starts with "MISSED:" or contains "MISSED"
+  function classify(body) {
+    const b = body.toUpperCase();
+    if (/\bMISSED\b/.test(b))                                        return 'miss';
+    if (/\bWIN\b|\+\s*\d|(\+\d+(\.\d+)?R)/.test(b))                  return 'win';
+    if (/\bLOSS(ED)?\b|\bSTOPPED\b|(-\d+(\.\d+)?R)|\b-\s*\d+R\b/.test(b)) return 'loss';
+    return 'neut';
+  }
+
+  function highlight(body) {
+    // bold tokens like +1.2R, -0.5R, MISSED:, BTC, XAUUSD, USDJPY
+    return body
+      .replace(/(MISSED:?)/gi,                          '<strong>$1</strong>')
+      .replace(/([+-]\d+(?:\.\d+)?\s*R\b)/g,            '<strong>$1</strong>')
+      .replace(/\b(BTC|XAUUSD|USDJPY|GOLD|XAU)\b/gi,    '<span class="text-mercury">$1</span>');
+  }
+
+  function escapeHTML(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function parseJournal(text) {
+    // capture [date time] then body until next [ or EOF
+    const re = /^\[(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})\]\s*([\s\S]*?)(?=^\[\d{4}-\d{2}-\d{2}|\Z)/gm;
+    const out = [];
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const date = m[1];
+      const time = m[2];
+      const body = m[3].trim();
+      if (!body) continue;
+      out.push({ date, time, body, ts: `${date} ${time}` });
+    }
+    return out;
+  }
+
+  // ───────── render ─────────
+  const entriesEl  = document.getElementById('entries');
+  const emptyEl    = document.getElementById('emptyState');
+  const errorEl    = document.getElementById('errorState');
+  const countEl    = document.getElementById('entryCount');
+  const searchEl   = document.getElementById('search');
+  const statDays   = document.getElementById('statDays');
+  const statCount  = document.getElementById('statEntries');
+
+  let ALL = [];
+
+  function renderList(list) {
+    if (!list.length) {
+      entriesEl.innerHTML = `
+        <div class="py-12 text-center font-mono text-sm text-mute">
+          no entries match that filter.
+        </div>`;
+      return;
+    }
+    entriesEl.innerHTML = list.map(e => {
+      const klass = classify(e.body);
+      return `
+        <div class="entry entry-${klass} grid grid-cols-12 gap-4 md:gap-8 py-5 md:py-6 px-1">
+          <div class="col-span-12 md:col-span-3 flex items-start gap-3">
+            <span class="marker mt-2 w-1.5 h-1.5 rounded-full shrink-0"></span>
+            <div>
+              <div class="ts">${e.date}</div>
+              <div class="ts text-bone">${e.time} <span class="text-mute">ICT</span></div>
+            </div>
+          </div>
+          <div class="col-span-12 md:col-span-9 body text-bone/90 text-[15px] leading-relaxed">
+            ${highlight(escapeHTML(e.body))}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function applyFilter() {
+    const q = (searchEl.value || '').trim().toLowerCase();
+    const list = !q ? ALL : ALL.filter(e =>
+      e.body.toLowerCase().includes(q) || e.ts.toLowerCase().includes(q)
+    );
+    renderList(list);
+    countEl.textContent = `${list.length} of ${ALL.length} shown`;
+  }
+
+  function animateNumber(el, target, suffix = '') {
+    const dur = 900, t0 = performance.now();
+    function frame(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased) + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function computeStats(entries) {
+    statCount.textContent = '0';
+    statDays.textContent  = '0';
+    if (!entries.length) return;
+    animateNumber(statCount, entries.length);
+    const dates = entries.map(e => new Date(e.date + 'T00:00:00'));
+    const first = new Date(Math.min(...dates));
+    const today = new Date();
+    const days = Math.max(1, Math.floor((today - first) / 86400000) + 1);
+    animateNumber(statDays, days);
+  }
+
+  function showEmpty() {
+    entriesEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    countEl.textContent = '0 entries';
+    statCount.textContent = '0';
+    statDays.textContent  = '0';
+  }
+
+  function showError(demo) {
+    errorEl.classList.remove('hidden');
+    ALL = demo;
+    computeStats(demo);
+    applyFilter();
+  }
+
+  // ───────── boot ─────────
+  // demo entries used as fallback so the layout never looks broken
+  const DEMO = parseJournal(`
+[2026-04-24 21:35] BTC long 67200 on liquidity sweep, +1.2R hit TP1
+[2026-04-24 22:10] XAUUSD short rejection at 2380, -0.5R stopped at BE
+[2026-04-25 21:30] MISSED: USDJPY breakout above 158.20, hesitated on entry
+[2026-04-25 22:45] BTC scalp short 68100, +0.8R quick exit, news risk
+[2026-04-26 21:40] Gold long off Asia low, +1.5R clean swing
+`.trim());
+
+  fetch('journal.md', { cache: 'no-store' })
+    .then(r => {
+      if (!r.ok) throw new Error('not found');
+      return r.text();
+    })
+    .then(text => {
+      const parsed = parseJournal(text);
+      if (!parsed.length) { showEmpty(); return; }
+      ALL = parsed
+        .sort((a, b) => b.ts.localeCompare(a.ts))   // newest first
+        .slice(0, 20);
+      computeStats(parsed);                          // stats from full set
+      applyFilter();
+    })
+    .catch(() => showError(DEMO.sort((a, b) => b.ts.localeCompare(a.ts))));
+
+  searchEl.addEventListener('input', applyFilter);
+
+})();
+</script>
+
+</body>
+</html>
