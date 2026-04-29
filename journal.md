@@ -69,3 +69,5 @@ starting trade today
 [2026-04-23 20:57] USdJPY Long 159.55 sl 159.05 tp 160.85
 [2026-04-24 12:04] Close USDJPY +2.4
 [2026-04-24 22:11] Skipped All Trade Today
+[2026-04-27 21:17] No trade today invalid setup
+[2026-04-28 22:23] no trade today no conditions met
