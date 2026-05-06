@@ -71,3 +71,11 @@ starting trade today
 [2026-04-24 22:11] Skipped All Trade Today
 [2026-04-27 21:17] No trade today invalid setup
 [2026-04-28 22:23] no trade today no conditions met
+[2026-04-29 22:16] btcusd short 76748 sl 77050 tp 76250
+[2026-04-29 22:20] Close BTCUSD short + 4.5
+[2026-04-30 21:57] no trading possible consolidated
+[2026-05-01 23:10] no trade xau seem freak out
+[2026-05-04 22:28] btcusd 79623 sl 78400 tp 81300
+[2026-05-05 11:13] Closed BTC +11.33
+[2026-05-05 22:11] Long BTC 81509 sl 80800 tp 82300
+[2026-05-06 11:15] Close BTC -7.11
