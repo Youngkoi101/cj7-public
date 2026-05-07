@@ -1150,39 +1150,139 @@ function getDemoEntries() {
 }
 
 // ─── OMNI.MD PARSER ───
+// Reads the markdown table format produced by omni.md:
+//   | Asset | Score | Status |
+//   | USDJPY | 2.0 | 🟢 SHIELD DOWN: BULLISH |
+// Then RE-DERIVES score & status via keyword-counting so the
+// display always reflects the correct normalised logic.
+
+const GENERAL_GREED = [
+  "bullish","breakout","rally","surge","upside","buy","long",
+  "momentum","recovery","bounce","accumulate","demand","strength",
+  "higher","gains","outperform","risk-on","optimism","confident"
+];
+const GENERAL_FEAR = [
+  "bearish","breakdown","sell-off","downside","short","dump",
+  "weakness","decline","drop","pressure","capitulate","supply",
+  "lower","losses","underperform","risk-off","pessimism","caution",
+  "recession","crash","correction"
+];
+const GOLD_BULLISH_TRIGGERS = [
+  "safe haven","inflation hedge","geopolitical","rate cut","dovish",
+  "dollar weakness","war","conflict","uncertainty","store of value",
+  "fed pause","debt ceiling","debasement"
+];
+const GOLD_BEARISH_TRIGGERS = [
+  "rate hike","hawkish","dollar strength","risk appetite","yields rising",
+  "tightening","strong dollar","usd rally","real yields","fed hike"
+];
+
+function countKeywords(text, words) {
+  return words.reduce((n, w) => n + (text.split(w).length - 1), 0);
+}
+
+function computeNormScore(text, asset) {
+  const lower = text.toLowerCase();
+  let bull, bear;
+  if (asset === 'GOLD') {
+    bull = countKeywords(lower, GENERAL_GREED) + countKeywords(lower, GOLD_BULLISH_TRIGGERS);
+    bear = countKeywords(lower, GOLD_BEARISH_TRIGGERS);
+  } else {
+    bull = countKeywords(lower, GENERAL_GREED);
+    bear = countKeywords(lower, GENERAL_FEAR);
+  }
+  const total = bull + bear;
+  return total === 0 ? 0.0 : Math.round((bull - bear) / total * 100) / 100;
+}
+
+function normScoreToStatus(norm) {
+  if (norm <= -0.5) return { label: 'SHIELD ACTIVE: HIGH RISK', cls: 'signal-bear',    color: 'var(--red)',    barColor: 'var(--red)' };
+  if (norm <  -0.1) return { label: 'CAUTION: BEARISH BIAS',   cls: 'signal-bear',    color: 'var(--red)',    barColor: 'var(--red)' };
+  if (norm >=  0.5) return { label: 'SHIELD DOWN: BULLISH',    cls: 'signal-bull',    color: 'var(--green)',  barColor: 'var(--green)' };
+  if (norm >   0.1) return { label: 'WEAK BULLISH',            cls: 'signal-bull',    color: 'var(--blue)',   barColor: 'var(--blue)' };
+  return               { label: 'NEUTRAL',                     cls: 'signal-neutral', color: 'var(--yellow)', barColor: 'var(--yellow)' };
+}
+
+// Fallback: parse pre-computed status from the markdown table
+// in case the body text section is not large enough for keyword scoring.
+function tableStatusToMeta(statusStr) {
+  const s = statusStr.toUpperCase();
+  if (s.includes('HIGH RISK') || s.includes('SHIELD ACTIVE')) return normScoreToStatus(-1);
+  if (s.includes('BEARISH'))  return normScoreToStatus(-0.3);
+  if (s.includes('BULLISH') && !s.includes('WEAK')) return normScoreToStatus(0.6);
+  if (s.includes('WEAK'))     return normScoreToStatus(0.2);
+  return normScoreToStatus(0);
+}
+
 function parseOmni(text) {
   const result = {};
 
-  // Extract timestamp from header line
-  const tsMatch = text.match(/OMNI-SENTIMENT SHIELD:\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
-  result.updated = tsMatch ? tsMatch[1] : null;
+  // Extract timestamp — supports both formats:
+  //   **Last Updated:** 2026-05-07 17:07 BKK
+  //   OMNI-SENTIMENT SHIELD: 2026-05-07 17:07
+  const tsMatch = text.match(/(?:Last Updated:|OMNI-SENTIMENT SHIELD:)\s*\**\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/i);
+  result.updated = tsMatch ? tsMatch[1].trim() : null;
 
-  // Split into asset blocks by ASSET: keyword
-  const blocks = text.split(/(?=ASSET:)/);
-  for (const block of blocks) {
-    const assetMatch = block.match(/ASSET:\s*(\w+)/);
-    const scoreMatch = block.match(/SCORE:\s*([\d.+-]+)/);
-    const statusMatch = block.match(/STATUS:\s*(.+)/);
-    if (!assetMatch) continue;
-    const key = assetMatch[1].toUpperCase().trim();
-    result[key] = {
-      score: scoreMatch ? parseFloat(scoreMatch[1]) : 0,
-      status: statusMatch ? statusMatch[1].trim() : 'NEUTRAL'
-    };
+  // Parse the markdown table rows:
+  //   | Asset | Score | Status |
+  const tableRowRe = /^\|\s*([A-Z]+)\s*\|\s*([\d.+-]+)\s*\|\s*(.+?)\s*\|$/gim;
+  let m;
+  while ((m = tableRowRe.exec(text)) !== null) {
+    const key    = m[1].toUpperCase().trim();
+    const score  = parseFloat(m[2]);
+    const status = m[3].replace(/[🔴🟡🟢🔵⚪]/gu, '').trim();
+    if (key === 'ASSET') continue; // skip header row
+    result[key] = { score, status };
   }
+
+  // Also parse body-text sections (## GOLD / ## BTC / ## USDJPY)
+  // for keyword re-scoring; fall back to table status if section absent.
+  const ALIASES = { XAUUSD:'GOLD', GOLD:'GOLD', BTC:'BTC', BTCUSDT:'BTC', USDJPY:'USDJPY', JPY:'USDJPY' };
+  const sectionRe = /^##\s+([A-Z]+)\s*$/gim;
+  let sm, lastKey = null, lastPos = 0;
+  const sections = {};
+  while ((sm = sectionRe.exec(text)) !== null) {
+    if (lastKey) sections[lastKey] = text.slice(lastPos, sm.index);
+    lastKey = ALIASES[sm[1].toUpperCase()] || sm[1].toUpperCase();
+    lastPos = sm.index + sm[0].length;
+  }
+  if (lastKey) sections[lastKey] = text.slice(lastPos);
+  result._sections = sections;
+
   return result;
 }
 
-function scoreToSignalClass(score, status) {
-  const s = status.toUpperCase();
-  if (s.includes('BULL') || score > 2) return 'signal-bull';
-  if (s.includes('BEAR') || score < -2) return 'signal-bear';
-  return 'signal-neutral';
+// Normalize score (-1..+1) → bar width 0..100%
+function normToPct(norm) {
+  return Math.round(((norm + 1) / 2) * 100);
 }
 
-// Score range in omni.md appears to be -10 to +10, map to 0-100% bar
-function scoreToPct(score) {
-  return Math.min(100, Math.max(0, ((score + 10) / 20) * 100));
+function applyAsset(data, tableKey, barId, sigId, barDefaultColor, delay) {
+  const row      = data[tableKey];
+  const section  = (data._sections || {})[tableKey];
+
+  let norm, meta;
+  if (section && section.trim().length > 80) {
+    // Enough body text — use keyword scoring
+    norm = computeNormScore(section, tableKey);
+    meta = normScoreToStatus(norm);
+  } else if (row) {
+    // Fall back to table status string
+    meta = tableStatusToMeta(row.status);
+    norm = row.score !== undefined ? Math.max(-1, Math.min(1, row.score)) : 0;
+  } else {
+    meta = normScoreToStatus(0);
+    norm = 0;
+  }
+
+  const shortLabel = meta.label.replace('SHIELD DOWN: ', '').replace('SHIELD ACTIVE: ', '').replace('CAUTION: ', '');
+  document.getElementById(sigId).textContent = shortLabel;
+  document.getElementById(sigId).className   = 'si-signal ' + meta.cls;
+  setTimeout(() => {
+    const bar = document.getElementById(barId);
+    bar.style.width      = normToPct(norm) + '%';
+    bar.style.background = meta.barColor;
+  }, delay);
 }
 
 // ─── SENTIMENT ───
@@ -1203,38 +1303,17 @@ async function loadSentiment() {
     const text = await r.text();
     const data = parseOmni(text);
 
-    // Update timestamp
+    // Timestamp
     if (data.updated) {
       document.getElementById('sentiment-updated').textContent = 'Updated ' + data.updated + ' BKK';
       document.getElementById('fg-ts').textContent = 'From omni.md · ' + data.updated;
     }
 
-    // BTC
-    if (data.BTC) {
-      const { score, status } = data.BTC;
-      document.getElementById('btc-sig').textContent = status.split('/')[0].trim();
-      document.getElementById('btc-sig').className = 'si-signal ' + scoreToSignalClass(score, status);
-      setTimeout(() => { document.getElementById('btc-bar').style.width = scoreToPct(score) + '%'; }, 300);
-    }
-
-    // GOLD → XAU
-    if (data.GOLD) {
-      const { score, status } = data.GOLD;
-      document.getElementById('xau-sig').textContent = status.split('/')[0].trim();
-      document.getElementById('xau-sig').className = 'si-signal ' + scoreToSignalClass(score, status);
-      setTimeout(() => { document.getElementById('xau-bar').style.width = scoreToPct(score) + '%'; }, 400);
-    }
-
-    // USDJPY → JPY
-    if (data.USDJPY) {
-      const { score, status } = data.USDJPY;
-      document.getElementById('jpy-sig').textContent = status.split('/')[0].trim();
-      document.getElementById('jpy-sig').className = 'si-signal ' + scoreToSignalClass(score, status);
-      setTimeout(() => { document.getElementById('jpy-bar').style.width = scoreToPct(score) + '%'; }, 500);
-    }
+    applyAsset(data, 'BTC',    'btc-bar', 'btc-sig', 'var(--gold)',  300);
+    applyAsset(data, 'GOLD',   'xau-bar', 'xau-sig', 'var(--gold)',  400);
+    applyAsset(data, 'USDJPY', 'jpy-bar', 'jpy-sig', 'var(--blue)',  500);
 
   } catch {
-    // fallback: show NO_DATA gracefully
     document.getElementById('sentiment-updated').textContent = 'omni.md not found';
     ['btc-sig','xau-sig','jpy-sig'].forEach(id => {
       document.getElementById(id).textContent = 'NO DATA';
