@@ -83,3 +83,4 @@ starting trade today
 [2026-05-08 18:39] Closed BTC Long +6.46
 [2026-05-08 22:23] Long BTC 79933 sl 78720 tp 81157
 [2026-05-09 21:28] Closed long btc +4.1
+[2026-05-11 22:54] Long BTC 81034 sl 80371 tp 81445
