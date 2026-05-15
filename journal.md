@@ -86,3 +86,4 @@ starting trade today
 [2026-05-11 22:54] Long BTC 81034 sl 80371 tp 81445
 [2026-05-12 12:37] Closed BTC +4.32
 [2026-05-12 21:36] No trade today h1 h4 direction against
+[2026-05-14 21:29] no trade today ATR flat
