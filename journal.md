@@ -87,3 +87,4 @@ starting trade today
 [2026-05-12 12:37] Closed BTC +4.32
 [2026-05-12 21:36] No trade today h1 h4 direction against
 [2026-05-14 21:29] no trade today ATR flat
+[2026-05-15 21:58] No trade tonight al 3 entering resession.
