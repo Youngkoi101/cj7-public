@@ -89,3 +89,4 @@ starting trade today
 [2026-05-14 21:29] no trade today ATR flat
 [2026-05-15 21:58] No trade tonight al 3 entering resession.
 [2026-05-19 21:28] no trading dxy standtall
+[2026-05-20 21:35] no trade tonight tp too close
