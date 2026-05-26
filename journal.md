@@ -91,3 +91,4 @@ starting trade today
 [2026-05-19 21:28] no trading dxy standtall
 [2026-05-20 21:35] no trade tonight tp too close
 [2026-05-21 21:49] Short gold 4512
+[2026-05-25 22:30] no trade tonight
