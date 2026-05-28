@@ -94,3 +94,4 @@ starting trade today
 [2026-05-25 22:30] no trade tonight
 [2026-05-26 22:44] Short gold 4521
 [2026-05-26 22:45] Close gold +8.76
+[2026-05-27 21:49] no trade again
