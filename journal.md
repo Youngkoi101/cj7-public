@@ -97,3 +97,4 @@ starting trade today
 [2026-05-27 21:49] no trade again
 [2026-05-28 21:24] no trade
 [2026-06-01 21:27] no trade all gates blocked
+[2026-06-03 11:57] no trade
