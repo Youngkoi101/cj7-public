@@ -108,3 +108,5 @@ starting trade today
 [2026-06-23 21:00] Closed short gbpjpy 0.0
 [2026-06-23 21:28] no more trade rr <1
 [2026-06-26 22:22] no trade
+[2026-06-29 22:40] Short nasdaq 23700
+[2026-06-29 22:40] Closed nasdaq -24.5
