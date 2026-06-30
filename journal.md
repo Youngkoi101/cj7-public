@@ -110,3 +110,4 @@ starting trade today
 [2026-06-26 22:22] no trade
 [2026-06-29 22:40] Short nasdaq 23700
 [2026-06-29 22:40] Closed nasdaq -24.5
+[2026-06-30 23:23] no trade tonight
