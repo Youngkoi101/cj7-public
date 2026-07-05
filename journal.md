@@ -112,3 +112,4 @@ starting trade today
 [2026-06-29 22:40] Closed nasdaq -24.5
 [2026-06-30 23:23] no trade tonight
 [2026-07-02 17:07] Long gbpjpy 215.16
+[2026-07-03 16:31] Closed long gbpjpy -0.03
