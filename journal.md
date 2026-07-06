@@ -113,3 +113,5 @@ starting trade today
 [2026-06-30 23:23] no trade tonight
 [2026-07-02 17:07] Long gbpjpy 215.16
 [2026-07-03 16:31] Closed long gbpjpy -0.03
+[2026-07-06 22:01] Long gbpjpy 216.699
+[2026-07-06 22:01] Closed long gbpjpy +8
