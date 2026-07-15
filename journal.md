@@ -118,3 +118,5 @@ starting trade today
 [2026-07-10 17:07] no trades last night
 [2026-07-13 21:34] Long eurusd 1.14058
 [2026-07-14 07:03] Closed long eurusd -8.25
+[2026-07-15 21:01] Long gbpjpy 217.9
+[2026-07-15 21:02] Closed long gbpjpy +4.86
