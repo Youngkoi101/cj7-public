@@ -120,3 +120,7 @@ starting trade today
 [2026-07-14 07:03] Closed long eurusd -8.25
 [2026-07-15 21:01] Long gbpjpy 217.9
 [2026-07-15 21:02] Closed long gbpjpy +4.86
+[2026-07-18 00:30] short gold 3965.93
+[2026-07-18 00:30] Closed short gold +3
+[2026-07-18 00:31] Long usdjpy 162.43
+[2026-07-18 00:32] Closed long usdjpy +6.3
