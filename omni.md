@@ -1,5 +1,5 @@
 # OMNI-SENTIMENT REPORT
-**Last Updated:** 2026-07-16 20:00 BKK
+**Last Updated:** 2026-07-17 20:00 BKK
 
 | Asset | Score | Status |
 | :--- | :--- | :--- |
