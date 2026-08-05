@@ -1,8 +1,8 @@
 # OMNI-SENTIMENT REPORT
-**Last Updated:** 2026-08-04 20:00 BKK
+**Last Updated:** 2026-08-05 20:00 BKK
 
 | Asset | Score | Status |
 | :--- | :--- | :--- |
-| USDJPY | -6.0 | 🔴 SHIELD ACTIVE: HIGH RISK |
+| USDJPY | 0.0 | ⚪ NEUTRAL / WAIT |
 | GOLD | 0.0 | NEUTRAL/NO_DATA |
 | BTC | 0.0 | ⚪ NEUTRAL / WAIT |
